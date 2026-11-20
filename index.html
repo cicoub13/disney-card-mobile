@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#1d3a8a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <title>Cartes Disney Leclerc</title>
+  </head>
+  <body>
+    <header class="top">
+      <div class="top-row">
+        <h1>Cartes Disney</h1>
+        <button id="menu-btn" class="icon-btn" aria-label="Menu">⋯</button>
+      </div>
+      <div class="progress"><div id="progress-bar"></div></div>
+      <p id="progress-text"></p>
+    </header>
+
+    <main>
+      <section id="view-collection">
+        <div class="filters" role="tablist">
+          <button data-filter="all" class="chip active"></button>
+          <button data-filter="missing" class="chip"></button>
+          <button data-filter="owned" class="chip"></button>
+          <button data-filter="dupes" class="chip"></button>
+        </div>
+        <div id="grid"></div>
+      </section>
+
+      <section id="view-scan" hidden>
+        <div class="camera">
+          <video id="video" playsinline muted autoplay></video>
+          <div id="card-frame" class="card-frame">
+            <div id="number-zone" class="number-zone">
+              <div class="scanline"></div>
+              <div id="hits"></div>
+            </div>
+          </div>
+          <div class="scan-banner">
+            <img id="scan-thumb" class="scan-thumb" alt="" hidden />
+            <div>
+              <strong id="scan-title"></strong>
+              <span id="scan-hint"></span>
+              <span id="scan-dots" class="scan-dots"></span>
+            </div>
+          </div>
+        </div>
+        <form id="manual" class="manual">
+          <input id="manual-num" type="number" inputmode="numeric" min="1" max="108" placeholder="N° de carte" />
+          <button type="submit">OK</button>
+        </form>
+      </section>
+    </main>
+
+    <nav class="tabs">
+      <button data-view="collection" class="active">📚 Collection</button>
+      <button data-view="scan">📷 Scanner</button>
+    </nav>
+
+    <dialog id="sheet" class="sheet">
+      <img id="sheet-img" class="sheet-img" alt="" />
+      <p id="sheet-info" class="sheet-info"></p>
+      <div class="counter">
+        <button id="sheet-minus" aria-label="Retirer un exemplaire">−</button>
+        <span id="sheet-count"></span>
+        <button id="sheet-plus" aria-label="Ajouter un exemplaire">+</button>
+      </div>
+      <div class="sheet-actions">
+        <button id="sheet-add" class="primary">Ajouter à ma collection</button>
+        <button id="sheet-close">Fermer</button>
+      </div>
+    </dialog>
+
+    <dialog id="menu" class="sheet">
+      <h2>Sauvegarde</h2>
+      <p class="hint">La collection est enregistrée sur ce téléphone uniquement. Exporte-la de temps en temps.</p>
+      <div class="sheet-actions">
+        <button id="export-btn" class="primary">Exporter (JSON)</button>
+        <label class="button">Importer (JSON)<input id="import-input" type="file" accept="application/json,.json" hidden /></label>
+        <button id="menu-close">Fermer</button>
+      </div>
+    </dialog>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

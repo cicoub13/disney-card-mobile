@@ -1,0 +1,28 @@
+{
+  "name": "disney-card-mobile",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host",
+    "test": "vitest run",
+    "bench": "node --import ./scripts/ts-ext.mjs scripts/ocr-bench.mjs"
+  },
+  "dependencies": {
+    "tesseract.js": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
+    "pngjs": "^7.0.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.1.1"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
