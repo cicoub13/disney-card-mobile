@@ -52,6 +52,9 @@ button, .button {
   font-weight: 600;
 }
 
+.danger { color: #d33; border-color: #d33; }
+a.button { text-decoration: none; }
+
 /* ---------- En-tête ---------- */
 
 .top {

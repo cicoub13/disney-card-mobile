@@ -245,6 +245,13 @@ $<HTMLInputElement>('import-input').addEventListener('change', async (e) => {
     menu.querySelector('.hint')!.textContent = 'Fichier invalide.';
   }
 });
+$('clear-btn').addEventListener('click', () => {
+  if (!confirm('Vider toute la collection ? Pense à exporter avant, cette action est définitive.')) return;
+  collection = {};
+  save(collection);
+  render();
+  menu.close();
+});
 
 navigator.storage?.persist?.();
 render();
