@@ -4,6 +4,7 @@ import { imageUrl } from './images';
 import { NUMBER_ZONE, type Box } from './preprocess';
 import { exportJson, load, sanitize, save } from './storage';
 import { Scanner, type ScanState } from './scanner';
+import { playNewCard, playOwnedCard } from './sounds';
 
 type Filter = 'all' | 'missing' | 'owned' | 'dupes';
 
@@ -14,6 +15,8 @@ let filter: Filter = 'all';
 const count = (n: number) => collection[n] ?? 0;
 
 function setCount(num: number, value: number) {
+  const before = count(num);
+  if (value > before) (before === 0 ? playNewCard : playOwnedCard)();
   if (value > 0) collection[num] = value;
   else delete collection[num];
   save(collection);
