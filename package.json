@@ -1,5 +1,5 @@
 {
-  "name": "disney-card-mobile",
+  "name": "album-108",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host",
     "test": "vitest run",
-    "bench": "node --import ./scripts/ts-ext.mjs scripts/ocr-bench.mjs"
+    "bench": "node --import ./scripts/ts-ext.mjs scripts/ocr-bench.mjs",
+    "demo": "node --import ./scripts/ts-ext.mjs scripts/demo/index.mjs"
   },
   "dependencies": {
     "tesseract.js": "^7.0.0"
@@ -16,6 +17,8 @@
   "devDependencies": {
     "@types/node": "^26.6.6",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
+    "gifenc": "^1.0.3",
+    "playwright-core": "^1.49.1",
     "pngjs": "^7.0.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.8",

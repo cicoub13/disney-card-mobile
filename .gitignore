@@ -3,3 +3,4 @@ dist
 .bench
 .DS_Store
 *.traineddata
+.demo

@@ -4,7 +4,7 @@ Guide pour les agents de code travaillant sur ce dépôt.
 
 ## Projet
 
-PWA mobile (Vite + TypeScript, **sans framework**) pour scanner et suivre les 108 cartes Disney Leclerc 2026.
+**Album 108** : PWA mobile (Vite + TypeScript, **sans framework**) pour scanner et suivre les 108 cartes Disney Leclerc 2026.
 Tout tourne dans le navigateur : pas de backend, pas de compte. Interface et commentaires **en français**.
 
 ## Commandes
@@ -15,6 +15,7 @@ Tout tourne dans le navigateur : pas de backend, pas de compte. Interface et com
 | `npm test` | Tests unitaires vitest (`src/*.test.ts`) |
 | `npm run build` | `tsc --noEmit` puis build Vite + service worker |
 | `npm run bench` | Précision de l'OCR sur les 108 visuels (`-- jitter` pour cadrages décalés) |
+| `npm run demo` | Régénère `docs/`, `public/og.png` et les icônes PNG (Chrome headless + fausse caméra) |
 
 Avant de terminer une modification : `npm test` et `npm run build` doivent passer.
 Toute modification de `preprocess.ts`, `parse.ts` ou `NUMBER_ZONE` : lancer `npm run bench -- jitter`
@@ -32,10 +33,14 @@ src/
                  détection des lignes de texte (composantes connexes), NUMBER_ZONE
   scanner.ts     Caméra + boucle OCR (Tesseract.js) + vote sur fenêtre glissante → ScanState
   main.ts        UI : grille collection, filtres, fiche carte (<dialog>), écran scan, menu sauvegarde
+  fx.ts          Effets : confettis (canvas), toast, carte holographique (popovers au-dessus des <dialog>)
+  sounds.ts      Sons synthétisés (Web Audio) quand on ajoute une carte
   style.css      Styles (thème clair/sombre via prefers-color-scheme)
+docs/            Bannière, captures et GIFs du README
 scripts/
   ocr-bench.mjs  Banc OCR (télécharge les visuels dans .bench/, ignoré par git)
   ts-ext.mjs     Hook Node pour importer les .ts sans extension
+  demo/          Génération des visuels du README (index.mjs) et gabarit de la bannière (banner.html)
 ```
 
 ## Pipeline de scan

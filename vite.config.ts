@@ -12,11 +12,11 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg', 'icon-192.png'],
       manifest: {
-        name: 'Cartes Disney Leclerc 2026',
-        short_name: 'Cartes Disney',
+        name: 'Album 108 · Cartes Disney Leclerc 2026',
+        short_name: 'Album 108',
         description: 'Scanne et suis ta collection de cartes Disney Leclerc',
         lang: 'fr',
-        theme_color: '#1d3a8a',
+        theme_color: '#16206b',
         background_color: '#f4f5fa',
         display: 'standalone',
         icons: [

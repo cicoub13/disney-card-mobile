@@ -4,6 +4,7 @@ import { imageUrl } from './images';
 import { NUMBER_ZONE, type Box } from './preprocess';
 import { exportJson, load, sanitize, save } from './storage';
 import { Scanner, type ScanState } from './scanner';
+import { confetti, holo, replay, toast } from './fx';
 import { playNewCard, playOwnedCard } from './sounds';
 
 type Filter = 'all' | 'missing' | 'owned' | 'dupes';
@@ -12,15 +13,36 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 
 let collection = load();
 let filter: Filter = 'all';
+let justAdded = 0; // carte à faire « apparaître » dans la grille au prochain rendu
 const count = (n: number) => collection[n] ?? 0;
+const ownedCount = () => CARDS.filter((c) => count(c.num) > 0).length;
 
 function setCount(num: number, value: number) {
   const before = count(num);
   if (value > before) (before === 0 ? playNewCard : playOwnedCard)();
+  const isNew = before === 0 && value > 0;
   if (value > 0) collection[num] = value;
   else delete collection[num];
   save(collection);
+  if (isNew) {
+    justAdded = num;
+    celebrate(CARDS[num - 1]);
+  }
   render();
+}
+
+// Nouvelle carte : confettis, plus gros si elle complète un film ou la collection.
+function celebrate(card: Card) {
+  const film = card.film;
+  if (ownedCount() === TOTAL) {
+    confetti(260);
+    toast('🏆 Collection complète : 108 / 108 !');
+  } else if (CARDS.every((c) => c.film !== film || count(c.num) > 0)) {
+    confetti(160, [film.color]);
+    toast(`🎉 ${film.name} : série complète !`);
+  } else {
+    confetti(70, [film.color]);
+  }
 }
 
 // ---------- Collection ----------
@@ -32,19 +54,38 @@ const FILTERS: Record<Filter, { label: string; keep: (c: Card) => boolean }> = {
   dupes: { label: 'Doublons', keep: (c) => count(c.num) > 1 },
 };
 
-function tile(c: Card) {
+function tile(c: Card, i: number) {
   const n = count(c.num);
-  return `<button class="tile ${n ? 'owned' : 'missing'}" data-num="${c.num}" style="--film:${c.film.color}">
+  const cls = `${n ? 'owned' : 'missing'}${c.num === justAdded ? ' just-added' : ''}`;
+  return `<button class="tile ${cls}" data-num="${c.num}" style="--film:${c.film.color};--i:${Math.min(i, 14)}">
     <img src="${imageUrl(c.num)}" alt="#${pad(c.num)} ${c.name}" loading="lazy" />
     ${n ? '' : `<span class="tile-label"><b>#${pad(c.num)}</b>${c.name}</span>`}
     ${n > 1 ? `<span class="badge">×${n}</span>` : ''}
   </button>`;
 }
 
-function render() {
-  const owned = CARDS.filter((c) => count(c.num) > 0).length;
+// Compteur de progression animé (de la valeur affichée vers la nouvelle).
+let shownOwned = 0;
+let countRaf = 0;
+function animateProgress(owned: number) {
+  const from = shownOwned;
+  const start = performance.now();
+  cancelAnimationFrame(countRaf);
+  const step = (t: number) => {
+    const k = Math.min(1, (t - start) / 700);
+    const v = Math.round(from + (owned - from) * (1 - (1 - k) ** 3));
+    $('progress-text').textContent = `${v} / ${TOTAL} cartes · ${TOTAL - v} manquantes`;
+    $('progress-pct').textContent = `${Math.round((v / TOTAL) * 100)} %`;
+    if (k < 1) countRaf = requestAnimationFrame(step);
+  };
+  shownOwned = owned;
+  countRaf = requestAnimationFrame(step);
+}
+
+function render(animate = false) {
+  const owned = ownedCount();
   $('progress-bar').style.width = `${(owned / TOTAL) * 100}%`;
-  $('progress-text').textContent = `${owned} / ${TOTAL} cartes · ${TOTAL - owned} manquantes`;
+  animateProgress(owned);
 
   document.querySelectorAll<HTMLButtonElement>('[data-filter]').forEach((b) => {
     const f = b.dataset.filter as Filter;
@@ -57,16 +98,21 @@ function render() {
     const shown = cards.filter(FILTERS[filter].keep);
     if (!shown.length) return '';
     const have = cards.filter((c) => count(c.num) > 0).length;
-    return `<h2 class="film">${film.name} <small>${have}/${cards.length}</small></h2>
+    const done = have === cards.length;
+    return `<h2 class="film${done ? ' done' : ''}" style="--film:${film.color}">${film.name}
+        <small>${done ? '✦ Complet' : `${have}/${cards.length}`}</small></h2>
       <div class="tiles">${shown.map(tile).join('')}</div>`;
   }).join('');
-  $('grid').innerHTML = html || '<p class="empty">Aucune carte ici.</p>';
+  const grid = $('grid');
+  grid.classList.toggle('animate', animate);
+  grid.innerHTML = html || '<p class="empty">Aucune carte ici.</p>';
+  justAdded = 0;
 }
 
 document.querySelectorAll<HTMLButtonElement>('[data-filter]').forEach((b) =>
   b.addEventListener('click', () => {
     filter = b.dataset.filter as Filter;
-    render();
+    render(true);
   }),
 );
 
@@ -78,6 +124,7 @@ $('grid').addEventListener('click', (e) => {
 // ---------- Fiche carte ----------
 
 const sheet = $<HTMLDialogElement>('sheet');
+holo($('holo'));
 let sheetNum = 0;
 let sheetFromScan = false;
 
@@ -85,6 +132,8 @@ function openSheet(num: number, fromScan: boolean) {
   sheetNum = num;
   sheetFromScan = fromScan;
   $('sheet-add').hidden = !fromScan;
+  $<HTMLButtonElement>('sheet-add').disabled = false;
+  $('holo').classList.remove('reveal');
   $('sheet-close').textContent = fromScan ? 'Pas la bonne carte' : 'Fermer';
   const img = $<HTMLImageElement>('sheet-img');
   img.src = imageUrl(num);
@@ -101,7 +150,10 @@ function refreshSheet() {
       ? `✨ Nouvelle carte : #${pad(c.num)} ${c.name}`
       : `Doublon : #${pad(c.num)} ${c.name} (déjà ×${n})`
     : `#${pad(c.num)} ${c.name} · ${c.film.name}`;
-  $('sheet-count').textContent = String(n);
+  const countEl = $('sheet-count');
+  if (countEl.textContent !== String(n) && sheet.open) replay(countEl, 'bump');
+  countEl.textContent = String(n);
+  $('holo').classList.toggle('owned', n > 0);
 }
 
 $('sheet-plus').addEventListener('click', () => {
@@ -112,9 +164,16 @@ $('sheet-minus').addEventListener('click', () => {
   setCount(sheetNum, count(sheetNum) - 1);
   refreshSheet();
 });
+// La carte « se révèle » dans la fiche, puis la fiche se ferme.
 $('sheet-add').addEventListener('click', () => {
+  $<HTMLButtonElement>('sheet-add').disabled = true;
   setCount(sheetNum, count(sheetNum) + 1);
-  sheet.close();
+  refreshSheet();
+  const c = CARDS[sheetNum - 1];
+  const n = count(sheetNum);
+  $('sheet-info').textContent = n === 1 ? `✨ ${c.name} rejoint ta collection !` : `Doublon ajouté : ${c.name} ×${n}`;
+  replay($('holo'), 'reveal');
+  setTimeout(() => sheet.close(), 1100);
 });
 $('sheet-close').addEventListener('click', () => sheet.close());
 sheet.addEventListener('close', () => {
@@ -257,4 +316,4 @@ $('clear-btn').addEventListener('click', () => {
 });
 
 navigator.storage?.persist?.();
-render();
+render(true);
